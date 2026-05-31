@@ -16,7 +16,7 @@
 Reposition kloonaus ja siirtyminen projektikansioon:
 
 ```bash
-git clone <github-repo-url>
+git clone https://github.com/ZyroX-05/Jalkapalloseura-Sovellus.git
 cd Jalkapalloseura-Sovellus
 ```
 
