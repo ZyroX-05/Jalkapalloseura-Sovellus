@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block title %}Announcement{% endblock %}
+
+{% block content %}
+  <h1>{{ announcement.title }}</h1>
+  <p><strong>Place:</strong> {{ announcement.place }}</p>
+  <p><strong>Time:</strong> {{ announcement.gametime }}</p>
+  <p><strong>Players needed:</strong> {{ announcement.players }}</p>
+  <p><strong>Description:</strong> {{ announcement.description }}</p>
+  <p><strong>Created by:</strong> {{ announcement.username }}</p>
+
+  {% if session.userid == announcement.userid %}
+    <p><a href="/announcements/{{ announcement.id }}/edit">Edit</a></p>
+  {% endif %}
+{% endblock %}
