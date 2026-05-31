@@ -10,3 +10,29 @@
 - Käyttäjä pystyy ilmoittautumaan pelivuoroon. Ilmoituksessa näytetään, ketkä käyttäjät ovat ilmoittautuneet.
 
 * Tässä pääasiallinen tietokohde on ilmoitus ja toissijainen tietokohde on ilmoittautuminen.
+
+# Sovelluksen asennus
+
+Reporsition kloonaus ja siirtyminen projektikansioon:
+
+bash
+git clone <github-repo-url>
+cd Jalkapalloseura-Sovellus
+
+Aktivointi ja asennus
+
+bash 
+python3 -m venv venv
+source venv/bin/activate
+pip install flask
+
+Tietokannan luonti
+
+bash 
+sqlite3 database.db < schema.sql
+
+Kaunnistys
+
+bash
+export FLASK_APP=app.py
+flask run
