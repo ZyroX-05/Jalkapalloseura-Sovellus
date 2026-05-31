@@ -1,9 +1,26 @@
-<!doctype html>
-<html>
-  <head><meta charset="utf-8"><title>Jalkapalloseura</title></head>
-  <body>
-    <h1>Heipparallaa templaatista!</h1>
-  </body>
-</html>
+{% extends "layout.html" %}
 
+{% block title %}Announcements{% endblock %}
 
+{% block content %}
+  <h1>Announcements</h1>
+
+  <form action="/search" method="get">
+    <input type="text" name="q" placeholder="Search…" value="{{ search or '' }}">
+    <input type="submit" value="Search">
+  </form>
+
+  {% if announcements %}
+    <ul>
+      {% for a in announcements %}
+        <li>
+          <a href="/announcements/{{ a.id }}">{{ a.title }}</a>
+          ({{ a.place }}, {{ a.gametime }}, players needed: {{ a.players }})
+          by {{ a.username }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No announcements yet.</p>
+  {% endif %}
+{% endblock %}
