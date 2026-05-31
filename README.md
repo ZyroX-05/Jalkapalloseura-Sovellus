@@ -11,28 +11,32 @@
 
 * Tässä pääasiallinen tietokohde on ilmoitus ja toissijainen tietokohde on ilmoittautuminen.
 
-# Sovelluksen asennus
+## Sovelluksen asennus
 
-Reporsition kloonaus ja siirtyminen projektikansioon:
+Reposition kloonaus ja siirtyminen projektikansioon:
 
-bash
+```bash
 git clone <github-repo-url>
 cd Jalkapalloseura-Sovellus
+```
 
-Aktivointi ja asennus
+Aktivointi ja asennus:
 
-bash 
+```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install flask
+```
 
-Tietokannan luonti
+Tietokannan luonti:
 
-bash 
+```bash
 sqlite3 database.db < schema.sql
+```
 
-Kaunnistys
+Käynnistys:
 
-bash
+```bash
 export FLASK_APP=app.py
 flask run
+```
