@@ -38,7 +38,6 @@ def index():
     announcements = db.query(sql)
     return render_template("index.html", announcements=announcements)
 
-
 @app.route("/register")
 def register():
     return render_template("register.html")
@@ -46,8 +45,6 @@ def register():
 
 @app.route("/create", methods=["POST"])
 def create():
-    require_csrf()
-
     username = request.form["username"]
     password1 = request.form["password1"]
     password2 = request.form["password2"]
@@ -71,8 +68,6 @@ def login():
     if request.method == "GET":
         return render_template("login.html")
 
-    require_csrf()
-
     username = request.form["username"]
     password = request.form["password"]
 
@@ -93,7 +88,6 @@ def login():
     session["csrf_token"] = secrets.token_hex(16)
 
     return redirect("/")
-
 
 @app.route("/logout")
 def logout():
