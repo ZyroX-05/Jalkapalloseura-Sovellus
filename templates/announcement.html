@@ -10,6 +10,35 @@
   <p><strong>Description:</strong> {{ announcement.description }}</p>
   <p><strong>Created by:</strong> {{ announcement.username }}</p>
 
+  <p>
+    <strong>Signed up:</strong>
+    {{ signup_count }} / {{ announcement.players }}
+  </p>
+
+  {% if signup_users %}
+    <p><strong>Players:</strong></p>
+    <ul>
+      {% for u in signup_users %}
+        <li>{{ u.username }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No one has signed up yet.</p>
+  {% endif %}
+
+  {% if session.userid %}
+    {% if not user_signed_up %}
+      <form action="/announcements/{{ announcement.id }}/signup" method="post">
+        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+        <input type="submit" value="Sign up for this game">
+      </form>
+    {% else %}
+      <p>You have already signed up for this game.</p>
+    {% endif %}
+  {% else %}
+    <p><a href="/login">Log in</a> to sign up.</p>
+  {% endif %}
+
   {% if session.userid == announcement.userid %}
     <p><a href="/announcements/{{ announcement.id }}/edit">Edit</a></p>
 
@@ -46,4 +75,3 @@
     </p>
   </form>
 {% endblock %}
-

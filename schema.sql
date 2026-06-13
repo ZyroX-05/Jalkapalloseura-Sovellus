@@ -3,6 +3,8 @@ DROP TABLE IF EXISTS announcements;
 DROP TABLE IF EXISTS categories;
 DROP TABLE IF EXISTS announcement_categories;
 DROP TABLE IF EXISTS comments;
+DROP TABLE IF EXISTS signups;
+
 
 CREATE TABLE users (
     id INTEGER PRIMARY KEY,
@@ -37,4 +39,12 @@ CREATE TABLE comments (
     created_at TEXT,
     user_id INTEGER REFERENCES users,
     announcement_id INTEGER REFERENCES announcements
+);
+
+CREATE TABLE signups (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER REFERENCES users,
+    announcement_id INTEGER REFERENCES announcements,
+    created_at TEXT,
+    UNIQUE (user_id, announcement_id)
 );

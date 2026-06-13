@@ -132,13 +132,32 @@ def user_page(user_id):
 @app.route("/announcements/new")
 def new_announcement():
     require_login()
-
     sql = "SELECT id, name FROM categories ORDER BY name"
     categories = db.query(sql)
-
     return render_template("new_announcement.html", categories=categories)
 
 
+
+@app.route("/announcements/<int:announcement_id>/signup", methods=["POST"])
+def signup(announcement_id):
+    require_login()
+    require_csrf()
+
+    user_id = session["userid"]
+    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    sql = "SELECT id FROM announcements WHERE id = ?"
+    result = db.query(sql, [announcement_id])
+    if len(result) == 0:
+        abort(404)
+
+    sql = """
+        INSERT OR IGNORE INTO signups (user_id, announcement_id, created_at)
+        VALUES (?, ?, ?)
+    """
+    db.execute(sql, [user_id, announcement_id, created_at])
+
+    return redirect(f"/announcements/{announcement_id}")
 
 @app.route("/announcements/create", methods=["POST"])
 def create_announcement():
@@ -209,12 +228,41 @@ def show_announcement(announcement_id):
     """
     comments = db.query(sql, [announcement_id])
 
+    sql = """
+        SELECT COUNT(*) AS count
+        FROM signups
+        WHERE announcement_id = ?
+    """
+    signup_result = db.query(sql, [announcement_id])
+    signup_count = signup_result[0]["count"] if signup_result else 0
+
+    user_signed_up = False
+    if "userid" in session:
+        sql = """
+            SELECT 1
+            FROM signups
+            WHERE announcement_id = ? AND user_id = ?
+        """
+        rows = db.query(sql, [announcement_id, session["userid"]])
+        user_signed_up = len(rows) > 0
+
+    sql = """
+        SELECT U.username
+        FROM signups S
+        JOIN users U ON S.user_id = U.id
+        WHERE S.announcement_id = ?
+        ORDER BY S.id
+    """
+    signup_users = db.query(sql, [announcement_id])
+
     return render_template(
         "announcement.html",
         announcement=announcement,
         comments=comments,
+        signup_count=signup_count,
+        user_signed_up=user_signed_up,
+        signup_users=signup_users,
     )
-
 
 @app.route("/announcements/<int:announcement_id>/comments", methods=["POST"])
 def add_comment(announcement_id):
@@ -293,7 +341,11 @@ def delete_announcement(announcement_id):
     if result[0]["userid"] != session["userid"]:
         abort(403)
 
+    db.execute("DELETE FROM comments WHERE announcement_id = ?", [announcement_id])
+    db.execute("DELETE FROM signups WHERE announcement_id = ?", [announcement_id])
+    db.execute("DELETE FROM announcement_categories WHERE announcement_id = ?", [announcement_id])
     db.execute("DELETE FROM announcements WHERE id = ?", [announcement_id])
+
     return redirect("/")
 
 
@@ -315,11 +367,13 @@ def search():
         WHERE A.title LIKE ?
            OR A.place LIKE ?
            OR A.description LIKE ?
+           OR A.gametime LIKE ?
         ORDER BY A.id DESC
     """
-    announcements = db.query(sql, [like, like, like])
+    announcements = db.query(sql, [like, like, like, like])
     return render_template(
         "index.html",
         announcements=announcements,
         search=query_text,
     )
+
