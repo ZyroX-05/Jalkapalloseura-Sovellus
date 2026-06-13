@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <h1>User {{ user.username }}</h1>
+
+  <p>You have created {{ count }} announcements.</p>
+
+  {% if announcements %}
+    <h2>Your announcements</h2>
+    <ul>
+      {% for a in announcements %}
+        <li>
+          <a href="/announcements/{{ a.id }}">{{ a.title }}</a>
+          ({{ a.place }}, {{ a.gametime }}, players: {{ a.players }})
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>You have not created any announcements yet.</p>
+  {% endif %}
+{% endblock %}

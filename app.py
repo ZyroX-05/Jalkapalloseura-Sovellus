@@ -2,6 +2,7 @@ from flask import Flask, abort, redirect, render_template, request, session
 from werkzeug.security import generate_password_hash, check_password_hash
 import config
 import db
+import secrets
 
 app = Flask(__name__)
 app.secret_key = config.secret_key
@@ -49,6 +50,7 @@ def create():
 
     return redirect("/login")
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
@@ -71,6 +73,8 @@ def login():
 
     session["userid"] = user["id"]
     session["username"] = username
+    session["csrf_token"] = secrets.token_hex(16)
+
     return redirect("/")
 
 
@@ -80,7 +84,35 @@ def logout():
         del session["userid"]
     if "username" in session:
         del session["username"]
+    if "csrf_token" in session:
+        del session["csrf_token"]
     return redirect("/")
+
+
+@app.route("/user/<int:user_id>")
+def user_page(user_id):
+    sql_user = "SELECT id, username FROM users WHERE id = ?"
+    result = db.query(sql_user, [user_id])
+    if len(result) == 0:
+        abort(404)
+    user = result[0]
+
+    sql_ann = """
+        SELECT id, title, place, gametime, players
+        FROM announcements
+        WHERE userid = ?
+        ORDER BY id DESC
+    """
+    announcements = db.query(sql_ann, [user_id])
+
+    count = len(announcements)
+
+    return render_template(
+        "user.html",
+        user=user,
+        announcements=announcements,
+        count=count,
+    )
 
 
 @app.route("/announcements/new")

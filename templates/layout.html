@@ -12,6 +12,7 @@
       <a href="/register">Register</a>
       {% if session.username %}
         <span>Logged in as {{ session.username }}</span>
+        <a href="/user/{{ session.userid }}">My page</a>
         <a href="/logout">Logout</a>
       {% else %}
         <a href="/login">Login</a>
@@ -23,4 +24,3 @@
     </div>
   </body>
 </html>
-
