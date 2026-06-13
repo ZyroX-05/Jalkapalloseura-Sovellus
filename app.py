@@ -114,11 +114,14 @@ def user_page(user_id):
         count=count,
     )
 
-
 @app.route("/announcements/new")
 def new_announcement():
     require_login()
-    return render_template("new_announcement.html")
+
+    sql = "SELECT id, name FROM categories ORDER BY name"
+    categories = db.query(sql)
+
+    return render_template("new_announcement.html", categories=categories)
 
 
 @app.route("/announcements/create", methods=["POST"])
@@ -137,6 +140,17 @@ def create_announcement():
         VALUES (?, ?, ?, ?, ?, ?)
     """
     db.execute(sql, [title, place, gametime, players, description, userid])
+
+    announcement_id = db.last_insert_id()
+
+    category_ids = request.form.getlist("category_ids")
+    for cid in category_ids:
+        sql = """
+            INSERT INTO announcement_categories (announcement_id, category_id)
+            VALUES (?, ?)
+        """
+        db.execute(sql, [announcement_id, int(cid)])
+
     return redirect("/")
 
 
