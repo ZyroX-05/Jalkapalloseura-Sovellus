@@ -17,3 +17,13 @@ CREATE TABLE announcements (
     userid INTEGER REFERENCES users
 );
 
+CREATE TABLE categories (
+    id INTEGER PRIMARY KEY,
+    name TEXT UNIQUE
+);
+
+CREATE TABLE announcement_categories (
+    announcement_id INTEGER REFERENCES announcements,
+    category_id INTEGER REFERENCES categories,
+    PRIMARY KEY (announcement_id, category_id)
+);
