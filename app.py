@@ -87,7 +87,11 @@ def login():
     session["username"] = username
     session["csrf_token"] = secrets.token_hex(16)
 
+    print("DEBUG LOGIN: session keys =", list(session.keys()))
+    print("DEBUG LOGIN: csrf_token =", session["csrf_token"])
+
     return redirect("/")
+
 
 @app.route("/logout")
 def logout():
@@ -133,6 +137,7 @@ def new_announcement():
     categories = db.query(sql)
 
     return render_template("new_announcement.html", categories=categories)
+
 
 
 @app.route("/announcements/create", methods=["POST"])
