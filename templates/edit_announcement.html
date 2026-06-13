@@ -4,16 +4,39 @@
 
 {% block content %}
   <h1>Edit announcement</h1>
+
   <form action="/announcements/{{ announcement.id }}/update" method="post">
-    <p>Title:<br><input type="text" name="title" value="{{ announcement.title }}"></p>
-    <p>Place:<br><input type="text" name="place" value="{{ announcement.place }}"></p>
-    <p>Time:<br><input type="text" name="gametime" value="{{ announcement.gametime }}"></p>
-    <p>Players needed:<br><input type="number" name="players" value="{{ announcement.players }}"></p>
-    <p>Description:<br><textarea name="description" rows="3" cols="40">{{ announcement.description }}</textarea></p>
-    <p><input type="submit" value="Save changes"></p>
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+
+    <p>Title:<br>
+      <input type="text" name="title" value="{{ announcement.title }}">
+    </p>
+
+    <p>Place:<br>
+      <input type="text" name="place" value="{{ announcement.place }}">
+    </p>
+
+    <p>Time:<br>
+      <input type="text" name="gametime" value="{{ announcement.gametime }}">
+    </p>
+
+    <p>Players needed:<br>
+      <input type="number" name="players" value="{{ announcement.players }}">
+    </p>
+
+    <p>Description:<br>
+      <textarea name="description" rows="3" cols="40">{{ announcement.description }}</textarea>
+    </p>
+
+    <p>
+      <input type="submit" value="Update">
+    </p>
   </form>
 
+  <h2>Delete announcement</h2>
   <form action="/announcements/{{ announcement.id }}/delete" method="post">
-    <p><input type="submit" value="Delete announcement"></p>
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <input type="submit" value="Delete">
   </form>
 {% endblock %}
+

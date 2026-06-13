@@ -12,5 +12,37 @@
 
   {% if session.userid == announcement.userid %}
     <p><a href="/announcements/{{ announcement.id }}/edit">Edit</a></p>
+
+    <form action="/announcements/{{ announcement.id }}/delete" method="post">
+      <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+      <input type="submit" value="Delete">
+    </form>
   {% endif %}
+
+  <h2>Comments</h2>
+
+  {% if comments %}
+    <ul>
+      {% for c in comments %}
+        <li>
+          <strong>{{ c.username }}</strong>
+          ({{ c.created_at }}):<br>
+          {{ c.content }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No comments yet.</p>
+  {% endif %}
+
+  <h3>Add a comment</h3>
+  <form action="/announcements/{{ announcement.id }}/comments" method="post">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <p>
+      <textarea name="content" rows="3" cols="40"></textarea>
+    </p>
+    <p>
+      <input type="submit" value="Send comment">
+    </p>
+  </form>
 {% endblock %}

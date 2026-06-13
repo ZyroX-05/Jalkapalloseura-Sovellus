@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import config
 import db
 import secrets
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = config.secret_key
@@ -13,10 +14,22 @@ def require_login():
         abort(403)
 
 
+def require_csrf():
+    token = session.get("csrf_token")
+    form_token = request.form.get("csrf_token")
+    if not token or not form_token or token != form_token:
+        abort(403)
+
+
 @app.route("/")
 def index():
     sql = """
-        SELECT A.id, A.title, A.place, A.gametime, A.players, A.description,
+        SELECT A.id,
+               A.title,
+               A.place,
+               A.gametime,
+               A.players,
+               A.description,
                U.username
         FROM announcements A
         JOIN users U ON A.userid = U.id
@@ -33,6 +46,8 @@ def register():
 
 @app.route("/create", methods=["POST"])
 def create():
+    require_csrf()
+
     username = request.form["username"]
     password1 = request.form["password1"]
     password2 = request.form["password2"]
@@ -55,6 +70,8 @@ def create():
 def login():
     if request.method == "GET":
         return render_template("login.html")
+
+    require_csrf()
 
     username = request.form["username"]
     password = request.form["password"]
@@ -104,7 +121,6 @@ def user_page(user_id):
         ORDER BY id DESC
     """
     announcements = db.query(sql_ann, [user_id])
-
     count = len(announcements)
 
     return render_template(
@@ -113,6 +129,7 @@ def user_page(user_id):
         announcements=announcements,
         count=count,
     )
+
 
 @app.route("/announcements/new")
 def new_announcement():
@@ -127,6 +144,7 @@ def new_announcement():
 @app.route("/announcements/create", methods=["POST"])
 def create_announcement():
     require_login()
+    require_csrf()
 
     title = request.form["title"]
     place = request.form["place"]
@@ -136,11 +154,17 @@ def create_announcement():
     userid = session["userid"]
 
     sql = """
-        INSERT INTO announcements (title, place, gametime, players, description, userid)
+        INSERT INTO announcements (
+            title,
+            place,
+            gametime,
+            players,
+            description,
+            userid
+        )
         VALUES (?, ?, ?, ?, ?, ?)
     """
     db.execute(sql, [title, place, gametime, players, description, userid])
-
     announcement_id = db.last_insert_id()
 
     category_ids = request.form.getlist("category_ids")
@@ -157,8 +181,14 @@ def create_announcement():
 @app.route("/announcements/<int:announcement_id>")
 def show_announcement(announcement_id):
     sql = """
-        SELECT A.id, A.title, A.place, A.gametime, A.players, A.description,
-               A.userid, U.username
+        SELECT A.id,
+               A.title,
+               A.place,
+               A.gametime,
+               A.players,
+               A.description,
+               A.userid,
+               U.username
         FROM announcements A
         JOIN users U ON A.userid = U.id
         WHERE A.id = ?
@@ -168,7 +198,45 @@ def show_announcement(announcement_id):
         abort(404)
 
     announcement = result[0]
-    return render_template("announcement.html", announcement=announcement)
+
+    sql = """
+        SELECT C.content,
+               C.created_at,
+               U.username
+        FROM comments C
+        JOIN users U ON C.user_id = U.id
+        WHERE C.announcement_id = ?
+        ORDER BY C.id DESC
+    """
+    comments = db.query(sql, [announcement_id])
+
+    return render_template(
+        "announcement.html",
+        announcement=announcement,
+        comments=comments,
+    )
+
+
+@app.route("/announcements/<int:announcement_id>/comments", methods=["POST"])
+def add_comment(announcement_id):
+    require_login()
+    require_csrf()
+
+    content = request.form["content"].strip()
+    user_id = session["userid"]
+
+    if not content:
+        return redirect(f"/announcements/{announcement_id}")
+
+    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    sql = """
+        INSERT INTO comments (content, created_at, user_id, announcement_id)
+        VALUES (?, ?, ?, ?)
+    """
+    db.execute(sql, [content, created_at, user_id, announcement_id])
+
+    return redirect(f"/announcements/{announcement_id}")
 
 
 @app.route("/announcements/<int:announcement_id>/edit")
@@ -190,6 +258,7 @@ def edit_announcement(announcement_id):
 @app.route("/announcements/<int:announcement_id>/update", methods=["POST"])
 def update_announcement(announcement_id):
     require_login()
+    require_csrf()
 
     sql = "SELECT userid FROM announcements WHERE id = ?"
     result = db.query(sql, [announcement_id])
@@ -216,6 +285,7 @@ def update_announcement(announcement_id):
 @app.route("/announcements/<int:announcement_id>/delete", methods=["POST"])
 def delete_announcement(announcement_id):
     require_login()
+    require_csrf()
 
     sql = "SELECT userid FROM announcements WHERE id = ?"
     result = db.query(sql, [announcement_id])
@@ -234,16 +304,23 @@ def search():
     like = f"%{query_text}%"
 
     sql = """
-        SELECT A.id, A.title, A.place, A.gametime, A.players, A.description,
+        SELECT A.id,
+               A.title,
+               A.place,
+               A.gametime,
+               A.players,
+               A.description,
                U.username
         FROM announcements A
         JOIN users U ON A.userid = U.id
-        WHERE A.title LIKE ? OR A.place LIKE ? OR A.description LIKE ?
+        WHERE A.title LIKE ?
+           OR A.place LIKE ?
+           OR A.description LIKE ?
         ORDER BY A.id DESC
     """
     announcements = db.query(sql, [like, like, like])
     return render_template(
         "index.html",
         announcements=announcements,
-        search=query_text
+        search=query_text,
     )

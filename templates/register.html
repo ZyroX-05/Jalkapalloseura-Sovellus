@@ -3,11 +3,25 @@
 {% block title %}Register{% endblock %}
 
 {% block content %}
-  <h1>Create account</h1>
+  <h1>Register</h1>
+
   <form action="/create" method="post">
-    <p>Username:<br><input type="text" name="username"></p>
-    <p>Password:<br><input type="password" name="password1"></p>
-    <p>Repeat password:<br><input type="password" name="password2"></p>
-    <p><input type="submit" value="Create account"></p>
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+
+    <p>Username:<br>
+      <input type="text" name="username">
+    </p>
+
+    <p>Password:<br>
+      <input type="password" name="password1">
+    </p>
+
+    <p>Repeat password:<br>
+      <input type="password" name="password2">
+    </p>
+
+    <p>
+      <input type="submit" value="Create account">
+    </p>
   </form>
 {% endblock %}

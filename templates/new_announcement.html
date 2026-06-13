@@ -4,12 +4,29 @@
 
 {% block content %}
   <h1>New announcement</h1>
+
   <form action="/announcements/create" method="post">
-    <p>Title:<br><input type="text" name="title"></p>
-    <p>Place:<br><input type="text" name="place"></p>
-    <p>Time:<br><input type="text" name="gametime"></p>
-    <p>Players needed:<br><input type="number" name="players"></p>
-    <p>Description:<br><textarea name="description" rows="3" cols="40"></textarea></p>
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+
+    <p>Title:<br>
+      <input type="text" name="title">
+    </p>
+
+    <p>Place:<br>
+      <input type="text" name="place">
+    </p>
+
+    <p>Time:<br>
+      <input type="text" name="gametime">
+    </p>
+
+    <p>Players needed:<br>
+      <input type="number" name="players">
+    </p>
+
+    <p>Description:<br>
+      <textarea name="description" rows="3" cols="40"></textarea>
+    </p>
 
     <h3>Categories</h3>
     {% for c in categories %}
@@ -19,6 +36,8 @@
       </label><br>
     {% endfor %}
 
-    <p><input type="submit" value="Save"></p>
+    <p>
+      <input type="submit" value="Save">
+    </p>
   </form>
 {% endblock %}

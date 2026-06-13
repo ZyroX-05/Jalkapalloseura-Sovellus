@@ -1,5 +1,8 @@
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS announcements;
+DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS announcement_categories;
+DROP TABLE IF EXISTS comments;
 
 CREATE TABLE users (
     id INTEGER PRIMARY KEY,
