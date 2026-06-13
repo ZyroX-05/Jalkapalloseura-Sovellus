@@ -27,3 +27,11 @@ CREATE TABLE announcement_categories (
     category_id INTEGER REFERENCES categories,
     PRIMARY KEY (announcement_id, category_id)
 );
+
+CREATE TABLE comments (
+    id INTEGER PRIMARY KEY,
+    content TEXT,
+    created_at TEXT,
+    user_id INTEGER REFERENCES users,
+    announcement_id INTEGER REFERENCES announcements
+);
