@@ -10,6 +10,12 @@
   <p><strong>Description:</strong> {{ announcement.description }}</p>
   <p><strong>Created by:</strong> {{ announcement.username }}</p>
 
+{% if categories %}
+  <p>
+    <strong>Skill level:</strong>
+    {{ categories | join(", ") }}
+  </p>
+{% endif %}
   <p>
     <strong>Signed up:</strong>
     {{ signup_count }} / {{ announcement.players }}

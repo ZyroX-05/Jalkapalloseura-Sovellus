@@ -164,12 +164,15 @@ def create_announcement():
     require_login()
     require_csrf()
 
-    title = request.form["title"]
-    place = request.form["place"]
-    gametime = request.form["gametime"]
-    players = request.form["players"]
-    description = request.form["description"]
+    title = request.form["title"].strip()
+    place = request.form["place"].strip()
+    gametime = request.form["gametime"].strip()
+    players = request.form["players"].strip()
+    description = request.form["description"].strip()
     userid = session["userid"]
+
+    if not title or not place or not gametime or not players:
+        return redirect("/announcements/new")
 
     sql = """
         INSERT INTO announcements (
@@ -195,74 +198,6 @@ def create_announcement():
 
     return redirect("/")
 
-
-@app.route("/announcements/<int:announcement_id>")
-def show_announcement(announcement_id):
-    sql = """
-        SELECT A.id,
-               A.title,
-               A.place,
-               A.gametime,
-               A.players,
-               A.description,
-               A.userid,
-               U.username
-        FROM announcements A
-        JOIN users U ON A.userid = U.id
-        WHERE A.id = ?
-    """
-    result = db.query(sql, [announcement_id])
-    if len(result) == 0:
-        abort(404)
-
-    announcement = result[0]
-
-    sql = """
-        SELECT C.content,
-               C.created_at,
-               U.username
-        FROM comments C
-        JOIN users U ON C.user_id = U.id
-        WHERE C.announcement_id = ?
-        ORDER BY C.id DESC
-    """
-    comments = db.query(sql, [announcement_id])
-
-    sql = """
-        SELECT COUNT(*) AS count
-        FROM signups
-        WHERE announcement_id = ?
-    """
-    signup_result = db.query(sql, [announcement_id])
-    signup_count = signup_result[0]["count"] if signup_result else 0
-
-    user_signed_up = False
-    if "userid" in session:
-        sql = """
-            SELECT 1
-            FROM signups
-            WHERE announcement_id = ? AND user_id = ?
-        """
-        rows = db.query(sql, [announcement_id, session["userid"]])
-        user_signed_up = len(rows) > 0
-
-    sql = """
-        SELECT U.username
-        FROM signups S
-        JOIN users U ON S.user_id = U.id
-        WHERE S.announcement_id = ?
-        ORDER BY S.id
-    """
-    signup_users = db.query(sql, [announcement_id])
-
-    return render_template(
-        "announcement.html",
-        announcement=announcement,
-        comments=comments,
-        signup_count=signup_count,
-        user_signed_up=user_signed_up,
-        signup_users=signup_users,
-    )
 
 @app.route("/announcements/<int:announcement_id>/comments", methods=["POST"])
 def add_comment(announcement_id):
@@ -328,6 +263,84 @@ def update_announcement(announcement_id):
     db.execute(sql, [title, place, gametime, players, description, announcement_id])
     return redirect(f"/announcements/{announcement_id}")
 
+@app.route("/announcements/<int:announcement_id>")
+def show_announcement(announcement_id):
+    sql = """
+        SELECT A.id,
+               A.title,
+               A.place,
+               A.gametime,
+               A.players,
+               A.description,
+               A.userid,
+               U.username
+        FROM announcements A
+        JOIN users U ON A.userid = U.id
+        WHERE A.id = ?
+    """
+    result = db.query(sql, [announcement_id])
+    if len(result) == 0:
+        abort(404)
+
+    announcement = result[0]
+
+    sql = """
+        SELECT C.content,
+               C.created_at,
+               U.username
+        FROM comments C
+        JOIN users U ON C.user_id = U.id
+        WHERE C.announcement_id = ?
+        ORDER BY C.id DESC
+    """
+    comments = db.query(sql, [announcement_id])
+
+    sql = """
+        SELECT COUNT(*) AS count
+        FROM signups
+        WHERE announcement_id = ?
+    """
+    signup_result = db.query(sql, [announcement_id])
+    signup_count = signup_result[0]["count"] if signup_result else 0
+
+    user_signed_up = False
+    if "userid" in session:
+        sql = """
+            SELECT 1
+            FROM signups
+            WHERE announcement_id = ? AND user_id = ?
+        """
+        rows = db.query(sql, [announcement_id, session["userid"]])
+        user_signed_up = len(rows) > 0
+
+    sql = """
+        SELECT U.username
+        FROM signups S
+        JOIN users U ON S.user_id = U.id
+        WHERE S.announcement_id = ?
+        ORDER BY S.id
+    """
+    signup_users = db.query(sql, [announcement_id])
+
+    sql = """
+        SELECT C.name
+        FROM announcement_categories AC
+        JOIN categories C ON AC.category_id = C.id
+        WHERE AC.announcement_id = ?
+        ORDER BY C.name
+    """
+    category_rows = db.query(sql, [announcement_id])
+    categories = [row["name"] for row in category_rows]
+
+    return render_template(
+        "announcement.html",
+        announcement=announcement,
+        comments=comments,
+        signup_count=signup_count,
+        user_signed_up=user_signed_up,
+        signup_users=signup_users,
+        categories=categories,
+    )
 
 @app.route("/announcements/<int:announcement_id>/delete", methods=["POST"])
 def delete_announcement(announcement_id):
