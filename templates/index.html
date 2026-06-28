@@ -1,14 +1,22 @@
-{% if announcements %}
-  <ul>
-    {% for a in announcements %}
-      <li>
-        <a href="/announcements/{{ a.id }}">{{ a.title }}</a><br>
-        {{ a.place }} – {{ a.gametime }} –
-        Players: {{ a.players }} –
-        Level: {{ a.category }}
-      </li>
-    {% endfor %}
-  </ul>
-{% else %}
-  <p>No announcements yet.</p>
-{% endif %}
+{% extends "layout.html" %}
+
+{% block title %}Announcements{% endblock %}
+
+{% block content %}
+  <h1>Announcements</h1>
+
+  {% if announcements %}
+    <ul>
+      {% for a in announcements %}
+        <li>
+          <a href="/announcements/{{ a.id }}">{{ a.title }}</a><br>
+          {{ a.place }} – {{ a.gametime }} –
+          Players: {{ a.players }} –
+          Level: {{ a.category }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No announcements yet.</p>
+  {% endif %}
+{% endblock %}
