@@ -267,6 +267,30 @@ def signup(announcement_id):
 
     return redirect(f"/announcements/{announcement_id}")
 
+@app.route("/announcements/<int:announcement_id>/comments", methods=["POST"])
+def add_comment(announcement_id):
+    need_login = require_login()
+    if need_login:
+        return need_login
+
+    if check_csrf():
+        return check_csrf()
+
+    content = request.form.get("content")
+
+    if not content:
+        return redirect(f"/announcements/{announcement_id}")
+
+    db.execute(
+        """
+        INSERT INTO comments (announcement_id, userid, content, created_at)
+        VALUES (?, ?, ?, datetime('now'))
+        """,
+        [announcement_id, session["userid"], content],
+    )
+
+    return redirect(f"/announcements/{announcement_id}")
+
 
 @app.route("/announcements/<int:announcement_id>/cancel", methods=["POST"])
 def cancel_signup(announcement_id):
@@ -326,7 +350,21 @@ def delete_announcement(announcement_id):
     if not announcement_rows or announcement_rows[0]["userid"] != session["userid"]:
         return redirect("/")
 
-    db.execute("DELETE FROM announcements WHERE id = ?", [announcement_id])
+    db.execute(
+        "DELETE FROM signups WHERE announcement_id = ?",
+        [announcement_id],
+    )
+
+    db.execute(
+        "DELETE FROM comments WHERE announcement_id = ?",
+        [announcement_id],
+    )
+
+    db.execute(
+        "DELETE FROM announcements WHERE id = ?",
+        [announcement_id],
+    )
+
     return redirect("/")
 
 
