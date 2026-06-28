@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+
+{% block title %}Search{% endblock %}
+
+{% block content %}
+  <h1>Search announcements</h1>
+
+  <form action="/search" method="post">
+    <p>
+      <label for="query">Search for announcements</label><br>
+      <input id="query" type="text" name="query">
+    </p>
+    <p>
+      <input type="submit" value="Search">
+    </p>
+  </form>
+
+  {% if announcements is defined %}
+    <h2>Results for "{{ query }}"</h2>
+    {% if announcements %}
+      <ul>
+        {% for a in announcements %}
+          <li>
+            <a href="/announcements/{{ a.id }}">{{ a.title }}</a><br>
+            {{ a.place }} – {{ a.gametime }} –
+            Players: {{ a.players }} – Level: {{ a.category }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No announcements found.</p>
+    {% endif %}
+  {% endif %}
+{% endblock %}

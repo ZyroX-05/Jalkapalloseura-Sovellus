@@ -5,15 +5,19 @@
 {% block content %}
   <h1>Login</h1>
 
+  {% if error %}
+    <p style="color: #c53030; font-weight: 600;">{{ error }}</p>
+  {% endif %}
+
   <form action="/login" method="post">
-    <p>Username:<br>
-      <input type="text" name="username" required>
+    <p>
+      <label for="username">Username</label><br>
+      <input id="username" type="text" name="username" required>
     </p>
-
-    <p>Password:<br>
-      <input type="password" name="password" required>
+    <p>
+      <label for="password">Password</label><br>
+      <input id="password" type="password" name="password" required>
     </p>
-
     <p>
       <input type="submit" value="Login">
     </p>

@@ -6,28 +6,36 @@
   <h1>New announcement</h1>
 
   <form action="/announcements/create" method="post">
-    <p>Title:<br>
-      <input type="text" name="title" required>
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+
+    <p>
+      <label for="title">Title</label><br>
+      <input id="title" type="text" name="title" required>
     </p>
 
-    <p>Place:<br>
-      <input type="text" name="place" required>
+    <p>
+      <label for="place">Place</label><br>
+      <input id="place" type="text" name="place" required>
     </p>
 
-    <p>Time:<br>
-      <input type="text" name="gametime" required>
+    <p>
+      <label for="gametime">Time</label><br>
+      <input id="gametime" type="text" name="gametime" required>
     </p>
 
-    <p>Players needed:<br>
-      <input type="number" name="players" min="1" required>
+    <p>
+      <label for="players">Players needed</label><br>
+      <input id="players" type="number" name="players" min="1" required>
     </p>
 
-    <p>Description:<br>
-      <textarea name="description" rows="3" cols="40" required></textarea>
+    <p>
+      <label for="description">Description</label><br>
+      <textarea id="description" name="description" rows="3" cols="40" required></textarea>
     </p>
 
-    <p>Categories (choose skill level):<br>
-      <select name="category" required>
+    <p>
+      <label for="category">Skill level</label><br>
+      <select id="category" name="category" required>
         <option value="">Choose category</option>
         <option value="Beginner">Beginner</option>
         <option value="Intermediate">Intermediate</option>

@@ -9,13 +9,17 @@
   <p><strong>Players needed:</strong> {{ announcement.players }}</p>
   <p><strong>Description:</strong> {{ announcement.description }}</p>
   <p><strong>Created by:</strong> {{ announcement.username }}</p>
+  <p><strong>Skill level:</strong> {{ announcement.category }}</p>
 
-{% if categories %}
-  <p>
-    <strong>Skill level:</strong>
-    {{ categories | join(", ") }}
-  </p>
-{% endif %}
+  {% if session.userid == announcement.userid %}
+    <p><a href="/announcements/{{ announcement.id }}/edit">Edit</a></p>
+
+    <form action="/announcements/{{ announcement.id }}/delete" method="post">
+      <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+      <input type="submit" value="Delete">
+    </form>
+  {% endif %}
+
   <p>
     <strong>Signed up:</strong>
     {{ signup_count }} / {{ announcement.players }}
@@ -39,19 +43,13 @@
         <input type="submit" value="Sign up for this game">
       </form>
     {% else %}
-      <p>You have already signed up for this game.</p>
+      <form action="/announcements/{{ announcement.id }}/cancel" method="post">
+        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+        <input type="submit" value="Cancel signup">
+      </form>
     {% endif %}
   {% else %}
     <p><a href="/login">Log in</a> to sign up.</p>
-  {% endif %}
-
-  {% if session.userid == announcement.userid %}
-    <p><a href="/announcements/{{ announcement.id }}/edit">Edit</a></p>
-
-    <form action="/announcements/{{ announcement.id }}/delete" method="post">
-      <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-      <input type="submit" value="Delete">
-    </form>
   {% endif %}
 
   <h2>Comments</h2>
@@ -70,14 +68,19 @@
     <p>No comments yet.</p>
   {% endif %}
 
-  <h3>Add a comment</h3>
-  <form action="/announcements/{{ announcement.id }}/comments" method="post">
-    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
-    <p>
-      <textarea name="content" rows="3" cols="40"></textarea>
-    </p>
-    <p>
-      <input type="submit" value="Send comment">
-    </p>
-  </form>
+  {% if session.userid %}
+    <h3>Add a comment</h3>
+    <form action="/announcements/{{ announcement.id }}/comments" method="post">
+      <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+      <p>
+        <label for="content">Comment</label><br>
+        <textarea id="content" name="content" rows="3" cols="40"></textarea>
+      </p>
+      <p>
+        <input type="submit" value="Send comment">
+      </p>
+    </form>
+  {% else %}
+    <p><a href="/login">Log in</a> to comment.</p>
+  {% endif %}
 {% endblock %}

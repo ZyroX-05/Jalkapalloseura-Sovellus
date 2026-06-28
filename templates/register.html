@@ -5,21 +5,25 @@
 {% block content %}
   <h1>Register</h1>
 
+  {% if error %}
+    <p style="color: #c53030; font-weight: 600;">{{ error }}</p>
+  {% endif %}
+
   <form action="/register" method="post">
-    <p>Username:<br>
-      <input type="text" name="username" required>
-    </p>
-
-    <p>Password:<br>
-      <input type="password" name="password1" required>
-    </p>
-
-    <p>Repeat password:<br>
-      <input type="password" name="password2" required>
-    </p>
-
     <p>
-      <input type="submit" value="Create account">
+      <label for="username">Username</label><br>
+      <input id="username" type="text" name="username" required>
+    </p>
+    <p>
+      <label for="password1">Password</label><br>
+      <input id="password1" type="password" name="password1" required>
+    </p>
+    <p>
+      <label for="password2">Confirm password</label><br>
+      <input id="password2" type="password" name="password2" required>
+    </p>
+    <p>
+      <input type="submit" value="Register">
     </p>
   </form>
 {% endblock %}

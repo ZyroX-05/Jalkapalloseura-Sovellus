@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+
+{% block title %}Edit announcement{% endblock %}
+
+{% block content %}
+  <h1>Edit announcement</h1>
+
+  {% if error %}
+    <p style="color: #c53030; font-weight: 600;">{{ error }}</p>
+  {% endif %}
+
+  <form action="/announcements/{{ announcement.id }}/update" method="post">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+
+    <p>
+      <label for="title">Title</label><br>
+      <input id="title" type="text" name="title" value="{{ announcement.title }}">
+    </p>
+
+    <p>
+      <label for="place">Place</label><br>
+      <input id="place" type="text" name="place" value="{{ announcement.place }}">
+    </p>
+
+    <p>
+      <label for="gametime">Time</label><br>
+      <input id="gametime" type="text" name="gametime" value="{{ announcement.gametime }}">
+    </p>
+
+    <p>
+      <label for="players">Players needed</label><br>
+      <input id="players" type="number" name="players" value="{{ announcement.players }}">
+    </p>
+
+    <p>
+      <label for="description">Description</label><br>
+      <textarea id="description" name="description" rows="3" cols="40">{{ announcement.description }}</textarea>
+    </p>
+
+    <p>
+      <label for="category">Skill level</label><br>
+      <select id="category" name="category">
+        <option value="Beginner" {% if announcement.category == "Beginner" %}selected{% endif %}>Beginner</option>
+        <option value="Intermediate" {% if announcement.category == "Intermediate" %}selected{% endif %}>Intermediate</option>
+        <option value="Advanced" {% if announcement.category == "Advanced" %}selected{% endif %}>Advanced</option>
+      </select>
+    </p>
+
+    <p>
+      <input type="submit" value="Update">
+    </p>
+  </form>
+
+  <h2>Delete announcement</h2>
+  <form action="/announcements/{{ announcement.id }}/delete" method="post">
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+    <input type="submit" value="Delete">
+  </form>
+{% endblock %}
