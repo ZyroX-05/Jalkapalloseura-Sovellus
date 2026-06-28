@@ -33,8 +33,9 @@ def before_request():
 
 @app.route("/")
 def index():
-    if require_login():
-        return require_login()
+    need_login = require_login()
+    if need_login:
+        return need_login
 
     announcements = db.query(
         """
@@ -115,16 +116,18 @@ def logout():
 
 @app.route("/announcements/new")
 def new_announcement():
-    if require_login():
-        return require_login()
+    need_login = require_login()
+    if need_login:
+        return need_login
 
     return render_template("new_announcement.html")
 
 
 @app.route("/announcements/create", methods=["POST"])
 def create_announcement():
-    if require_login():
-        return require_login()
+    need_login = require_login()
+    if need_login:
+        return need_login
 
     if check_csrf():
         return check_csrf()
@@ -173,8 +176,9 @@ def create_announcement():
 
 @app.route("/announcements/<int:announcement_id>")
 def show_announcement(announcement_id):
-    if require_login():
-        return require_login()
+    need_login = require_login()
+    if need_login:
+        return need_login
 
     announcement_rows = db.query(
         """
@@ -237,18 +241,19 @@ def show_announcement(announcement_id):
 
 @app.route("/announcements/<int:announcement_id>/signup", methods=["POST"])
 def signup(announcement_id):
-    if require_login():
-        return require_login()
+    need_login = require_login()
+    if need_login:
+        return need_login
 
     if check_csrf():
         return check_csrf()
 
     existing = db.query(
         """
-        SELECT 1 FROM signups
+        SELECT 1
+        FROM signups
         WHERE announcement_id = ? AND userid = ?
-        """
-        ,
+        """,
         [announcement_id, session["userid"]],
     )
     if not existing:
@@ -256,8 +261,7 @@ def signup(announcement_id):
             """
             INSERT INTO signups (announcement_id, userid)
             VALUES (?, ?)
-            """
-            ,
+            """,
             [announcement_id, session["userid"]],
         )
 
@@ -266,8 +270,9 @@ def signup(announcement_id):
 
 @app.route("/announcements/<int:announcement_id>/cancel", methods=["POST"])
 def cancel_signup(announcement_id):
-    if require_login():
-        return require_login()
+    need_login = require_login()
+    if need_login:
+        return need_login
 
     if check_csrf():
         return check_csrf()
@@ -276,8 +281,7 @@ def cancel_signup(announcement_id):
         """
         DELETE FROM signups
         WHERE announcement_id = ? AND userid = ?
-        """
-        ,
+        """,
         [announcement_id, session["userid"]],
     )
     return redirect(f"/announcements/{announcement_id}")
@@ -285,8 +289,9 @@ def cancel_signup(announcement_id):
 
 @app.route("/announcements/<int:announcement_id>/edit")
 def edit_announcement(announcement_id):
-    if require_login():
-        return require_login()
+    need_login = require_login()
+    if need_login:
+        return need_login
 
     announcement_rows = db.query(
         """
@@ -308,8 +313,9 @@ def edit_announcement(announcement_id):
 
 @app.route("/announcements/<int:announcement_id>/delete", methods=["POST"])
 def delete_announcement(announcement_id):
-    if require_login():
-        return require_login()
+    need_login = require_login()
+    if need_login:
+        return need_login
 
     if check_csrf():
         return check_csrf()
@@ -326,8 +332,9 @@ def delete_announcement(announcement_id):
 
 @app.route("/announcements/<int:announcement_id>/update", methods=["POST"])
 def update_announcement(announcement_id):
-    if require_login():
-        return require_login()
+    need_login = require_login()
+    if need_login:
+        return need_login
 
     if check_csrf():
         return check_csrf()
@@ -389,8 +396,9 @@ def update_announcement(announcement_id):
 
 @app.route("/search", methods=["GET", "POST"])
 def search():
-    if require_login():
-        return require_login()
+    need_login = require_login()
+    if need_login:
+        return need_login
 
     if request.method == "GET":
         return render_template("search.html")
@@ -410,8 +418,9 @@ def search():
 
 @app.route("/user/<int:userid>")
 def user_page(userid):
-    if require_login():
-        return require_login()
+    need_login = require_login()
+    if need_login:
+        return need_login
 
     user_rows = db.query(
         "SELECT id, username FROM users WHERE id = ?", [userid]
@@ -432,8 +441,7 @@ def user_page(userid):
         FROM announcements
         WHERE userid = ?
         ORDER BY gametime
-        """
-        ,
+        """,
         [userid],
     )
 
