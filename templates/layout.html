@@ -1,26 +1,27 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
-    <title>{% block title %}Football app{% endblock %}</title>
+    <title>{% block title %}Football club app{% endblock %}</title>
   </head>
   <body>
-    <div>
+    <p>
       <a href="/">Home</a>
       <a href="/announcements/new">New announcement</a>
       <a href="/search">Search</a>
-      <a href="/register">Register</a>
-      {% if session.username %}
-        <span>Logged in as {{ session.username }}</span>
-        <a href="/user/{{ session.userid }}">My page</a>
+
+      {% if session.get("userid") %}
+        Logged in as user {{ session.get("userid") }}
+        <a href="/user/{{ session.get("userid") }}">My page</a>
         <a href="/logout">Logout</a>
       {% else %}
+        <a href="/register">Register</a>
         <a href="/login">Login</a>
       {% endif %}
-    </div>
+    </p>
+
     <hr>
-    <div>
-      {% block content %}{% endblock %}
-    </div>
+
+    {% block content %}{% endblock %}
   </body>
 </html>

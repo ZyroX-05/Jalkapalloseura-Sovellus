@@ -1,26 +1,14 @@
-{% extends "layout.html" %}
-
-{% block title %}Announcements{% endblock %}
-
-{% block content %}
-  <h1>Announcements</h1>
-
-  <form action="/search" method="get">
-    <input type="text" name="q" placeholder="Search…" value="{{ search or '' }}">
-    <input type="submit" value="Search">
-  </form>
-
-  {% if announcements %}
-    <ul>
-      {% for a in announcements %}
-        <li>
-          <a href="/announcements/{{ a.id }}">{{ a.title }}</a>
-          ({{ a.place }}, {{ a.gametime }}, players needed: {{ a.players }})
-          by {{ a.username }}
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No announcements yet.</p>
-  {% endif %}
-{% endblock %}
+{% if announcements %}
+  <ul>
+    {% for a in announcements %}
+      <li>
+        <a href="/announcements/{{ a.id }}">{{ a.title }}</a><br>
+        {{ a.place }} – {{ a.gametime }} –
+        Players: {{ a.players }} –
+        Level: {{ a.category }}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No announcements yet.</p>
+{% endif %}

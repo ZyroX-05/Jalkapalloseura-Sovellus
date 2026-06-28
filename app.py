@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import config
 import db
 import secrets
+import sqlite3
 from datetime import datetime
 
 app = Flask(__name__)
@@ -30,6 +31,7 @@ def index():
                A.gametime,
                A.players,
                A.description,
+               A.category,
                U.username
         FROM announcements A
         JOIN users U ON A.userid = U.id
@@ -38,71 +40,63 @@ def index():
     announcements = db.query(sql)
     return render_template("index.html", announcements=announcements)
 
-@app.route("/register")
-def register():
-    return render_template("register.html")
-
-
-@app.route("/create", methods=["POST"])
-def create():
-    username = request.form["username"]
-    password1 = request.form["password1"]
-    password2 = request.form["password2"]
-
-    if password1 != password2:
-        return "Error: passwords do not match"
-
-    passwordhash = generate_password_hash(password1)
-
-    try:
-        sql = "INSERT INTO users (username, password_hash) VALUES (?, ?)"
-        db.execute(sql, [username, passwordhash])
-    except Exception:
-        return "Error: username is already taken"
-
-    return redirect("/login")
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
         return render_template("login.html")
 
-    username = request.form["username"]
-    password = request.form["password"]
+    username = request.form.get("username", "").strip()
+    password = request.form.get("password", "")
+
+    if not username or not password:
+        return "Error: please fill in both username and password."
 
     sql = "SELECT id, password_hash FROM users WHERE username = ?"
     result = db.query(sql, [username])
 
-    if len(result) == 0:
-        return "Error: invalid username or password"
+    if not result:
+        return "Error: wrong username or password."
 
-    user = result[0]
-    passwordhash = user["password_hash"]
+    userid = result[0]["id"]
+    password_hash = result[0]["password_hash"]
 
-    if not check_password_hash(passwordhash, password):
-        return "Error: invalid username or password"
+    if not check_password_hash(password_hash, password):
+        return "Error: wrong username or password."
 
-    session["userid"] = user["id"]
-    session["username"] = username
-    session["csrf_token"] = secrets.token_hex(16)
-
-    print("DEBUG LOGIN: session keys =", list(session.keys()))
-    print("DEBUG LOGIN: csrf_token =", session["csrf_token"])
-
+    session["userid"] = userid
     return redirect("/")
 
 
 @app.route("/logout")
 def logout():
-    if "userid" in session:
-        del session["userid"]
-    if "username" in session:
-        del session["username"]
-    if "csrf_token" in session:
-        del session["csrf_token"]
+    session.pop("userid", None)
     return redirect("/")
 
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "GET":
+        return render_template("register.html")
+
+    username = request.form.get("username", "").strip()
+    password1 = request.form.get("password1", "")
+    password2 = request.form.get("password2", "")
+
+    if not username or not password1 or not password2:
+        return "Error: please fill in all fields."
+
+    if password1 != password2:
+        return "Error: passwords do not match."
+
+    password_hash = generate_password_hash(password1)
+
+    try:
+        sql = "INSERT INTO users (username, password_hash) VALUES (?, ?)"
+        db.execute(sql, [username, password_hash])
+    except sqlite3.IntegrityError:
+        return "Error: username is already taken."
+
+    return "Account created successfully."
 
 @app.route("/user/<int:user_id>")
 def user_page(user_id):
@@ -129,50 +123,26 @@ def user_page(user_id):
     )
 
 
-@app.route("/announcements/new")
-def new_announcement():
-    require_login()
-    sql = "SELECT id, name FROM categories ORDER BY name"
-    categories = db.query(sql)
-    return render_template("new_announcement.html", categories=categories)
-
-
-
-@app.route("/announcements/<int:announcement_id>/signup", methods=["POST"])
-def signup(announcement_id):
-    require_login()
-    require_csrf()
-
-    user_id = session["userid"]
-    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    sql = "SELECT id FROM announcements WHERE id = ?"
-    result = db.query(sql, [announcement_id])
-    if len(result) == 0:
-        abort(404)
-
-    sql = """
-        INSERT OR IGNORE INTO signups (user_id, announcement_id, created_at)
-        VALUES (?, ?, ?)
-    """
-    db.execute(sql, [user_id, announcement_id, created_at])
-
-    return redirect(f"/announcements/{announcement_id}")
-
 @app.route("/announcements/create", methods=["POST"])
 def create_announcement():
-    require_login()
-    require_csrf()
+    userid = session.get("userid")
+    if userid is None:
+        return redirect("/login")
 
-    title = request.form["title"].strip()
-    place = request.form["place"].strip()
-    gametime = request.form["gametime"].strip()
-    players = request.form["players"].strip()
-    description = request.form["description"].strip()
-    userid = session["userid"]
+    title = request.form.get("title", "").strip()
+    place = request.form.get("place", "").strip()
+    gametime = request.form.get("gametime", "").strip()
+    players = request.form.get("players", "").strip()
+    description = request.form.get("description", "").strip()
+    category = request.form.get("category", "").strip()
 
-    if not title or not place or not gametime or not players:
-        return redirect("/announcements/new")
+    if not title or not place or not gametime or not players or not description or not category:
+        return "Error: all fields are required."
+
+    try:
+        players_int = int(players)
+    except ValueError:
+        return "Error: players needed must be an integer."
 
     sql = """
         INSERT INTO announcements (
@@ -181,22 +151,22 @@ def create_announcement():
             gametime,
             players,
             description,
+            category,
             userid
         )
-        VALUES (?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     """
-    db.execute(sql, [title, place, gametime, players, description, userid])
-    announcement_id = db.last_insert_id()
-
-    category_ids = request.form.getlist("category_ids")
-    for cid in category_ids:
-        sql = """
-            INSERT INTO announcement_categories (announcement_id, category_id)
-            VALUES (?, ?)
-        """
-        db.execute(sql, [announcement_id, int(cid)])
+    db.execute(sql, [title, place, gametime, players_int, description, category, userid])
 
     return redirect("/")
+
+@app.route("/announcements/new")
+def new_announcement():
+    userid = session.get("userid")
+    if userid is None:
+        return redirect("/login")
+    return render_template("new_announcement.html")
+
 
 
 @app.route("/announcements/<int:announcement_id>/comments", methods=["POST"])
@@ -389,4 +359,3 @@ def search():
         announcements=announcements,
         search=query_text,
     )
-
